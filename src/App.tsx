@@ -14,6 +14,7 @@ import { CountdownTimer } from './components/CountdownTimer';
 import { ProgramSchedule } from './components/ProgramSchedule';
 import { LocationMap } from './components/LocationMap';
 import { WeddingPhotoGallery } from './components/WeddingPhotoGallery';
+import { GuestbookWishes } from './components/GuestbookWishes';
 import { KhmerWeddingKHQR } from './components/KhmerWeddingKHQR';
 import { PhotoCustomizer } from './components/PhotoCustomizer';
 import { ShareModal } from './components/ShareModal';
@@ -101,76 +102,81 @@ export default function App() {
           <span className="text-xs">✤ ❁ ✤</span>
         </div>
 
-        {/* Header Frame - Traditional Arch styling in Soft Pink & Coffee */}
-        <header className="header-frame border-2 border-[#edd3dd] rounded-t-[18px] rounded-b-[90px] pt-6 pb-5 px-4 bg-[#fdf8fa] mb-5 shadow-xs relative overflow-hidden">
+        {/* Header Frame - Formatted exactly like sample 644.jpg */}
+        <header className="header-frame border-2 border-[#edd3dd] rounded-t-[20px] rounded-b-[70px] pt-7 pb-6 px-4 sm:px-6 bg-[#fdf8fa] mb-5 shadow-xs relative overflow-hidden">
           {/* Subtle gold-coffee floral border accent */}
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#b38728] to-transparent opacity-60" />
 
-          <h1 className="title font-moul text-[#43281c] text-[17px] sm:text-[19px] mb-4 tracking-wide leading-relaxed">
+          {/* Title: សិរីមង្គលអាពាហ៍ពិពាហ៍ */}
+          <h1 className="title font-moul text-[#43281c] text-lg sm:text-[21px] mb-5 tracking-wide leading-relaxed">
             {WEDDING_DATA.title}
           </h1>
 
+          {/* Parents 2-Column Grid (ដូចគំរូ 644.jpg) */}
+          <div className="parents-grid flex justify-between text-xs sm:text-[12.5px] text-[#43281c] mb-5 leading-relaxed font-kantumruy px-1 sm:px-3">
+            <div className="w-[48%] text-left">
+              <div className="font-bold text-[#3d2314]">{WEDDING_DATA.groom.fatherTitle} {WEDDING_DATA.groom.father}</div>
+              <div className="font-bold text-[#3d2314]">{WEDDING_DATA.groom.motherTitle} {WEDDING_DATA.groom.mother}</div>
+            </div>
+            <div className="w-[48%] text-right">
+              <div className="font-bold text-[#3d2314]">{WEDDING_DATA.bride.fatherTitle} {WEDDING_DATA.bride.father}</div>
+              <div className="font-bold text-[#3d2314]">{WEDDING_DATA.bride.motherTitle} {WEDDING_DATA.bride.mother}</div>
+            </div>
+          </div>
+
           {/* Personalized Guest Welcome Header */}
           {guestName && (
-            <div className="mb-4 py-1.5 px-3 rounded-lg bg-[#faedf2] border border-[#ebd0dc] inline-block max-w-full">
-              <span className="text-[10px] text-[#7f5539] font-kantumruy block">សូមគោរពអញ្ជើញ៖</span>
-              <span className="text-xs font-bold text-[#43281c] font-kantumruy break-words">
+            <div className="mb-4 py-1.5 px-3.5 rounded-xl bg-[#faedf2] border border-[#ebd0dc] inline-block max-w-full">
+              <span className="text-[10.5px] text-[#7f5539] font-kantumruy block">សូមគោរពអញ្ជើញ៖</span>
+              <span className="text-xs sm:text-sm font-bold text-[#43281c] font-kantumruy break-words">
                 {guestName}
               </span>
             </div>
           )}
 
-          {/* Parents Grid */}
-          <div className="parents-grid flex justify-between text-[11px] text-[#5e3a24] mb-3 leading-relaxed text-left px-1 font-kantumruy">
-            <div className="w-[48%] bg-white/80 p-2 rounded-xl border border-[#ebd0dc]">
-              <span className="block font-bold text-[#3d2314] text-[11.5px] border-b border-[#f0dce4] pb-1 mb-1">
-                ខាងកូនប្រុស
-              </span>
-              <div>
-                <strong>ឪពុក៖</strong> {WEDDING_DATA.groom.father}
-              </div>
-              <div>
-                <strong>ម្ដាយ៖</strong> {WEDDING_DATA.groom.mother}
-              </div>
-            </div>
-
-            <div className="w-[48%] bg-white/80 p-2 rounded-xl border border-[#ebd0dc]">
-              <span className="block font-bold text-[#3d2314] text-[11.5px] border-b border-[#f0dce4] pb-1 mb-1">
-                ខាងកូនស្រី
-              </span>
-              <div>
-                <strong>ឪពុក៖</strong> {WEDDING_DATA.bride.father}
-              </div>
-              <div>
-                <strong>ម្ដាយ៖</strong> {WEDDING_DATA.bride.mother}
-              </div>
-            </div>
+          {/* Invitation Call (មានកិត្តិយសសូមគោរពអញ្ជើញ) */}
+          <div className="font-moul text-xs sm:text-sm text-[#43281c] mt-2 mb-2 tracking-wide">
+            {WEDDING_DATA.invitationCall}
           </div>
 
-          {/* Formal Invitation Message in Coffee Tone */}
-          <div className="invitation-text text-[12px] sm:text-[12.5px] text-[#5e3825] leading-relaxed my-3 font-kantumruy px-1">
+          {/* Formal Invitation Message (ដូចគំរូ 644.jpg) */}
+          <div className="invitation-text text-[11.5px] sm:text-[12px] text-[#5e3825] leading-relaxed my-2 font-kantumruy px-1 text-center">
             {WEDDING_DATA.invitationText}
           </div>
 
-          <div className="scroll-hint text-[11px] text-[#7f5539] mt-3 font-kantumruy flex items-center justify-center gap-1">
+          {/* Couple Names Section inside card frame (កូនប្រុសនាម ... ជាគូនឹង ... កូនស្រីនាម ដូចគំរូ 644.jpg) */}
+          <div className="my-5 py-2 flex items-center justify-between gap-1 sm:gap-2 px-1">
+            <div className="text-center flex-1">
+              <span className="text-[11px] text-[#7f5539] font-kantumruy block">កូនប្រុសនាម</span>
+              <span className="font-moul text-base sm:text-lg text-[#3d2314] leading-tight block mt-1">
+                {WEDDING_DATA.groom.fullName}
+              </span>
+            </div>
+
+            <div className="text-[11px] sm:text-xs text-[#9c6644] font-kantumruy italic px-1 shrink-0">
+              ជាគូនឹង
+            </div>
+
+            <div className="text-center flex-1">
+              <span className="text-[11px] text-[#7f5539] font-kantumruy block">កូនស្រីនាម</span>
+              <span className="font-moul text-base sm:text-lg text-[#3d2314] leading-tight block mt-1">
+                {WEDDING_DATA.bride.fullName}
+              </span>
+            </div>
+          </div>
+
+          {/* Date, Time & Venue (ដូចគំរូ 644.jpg) */}
+          <div className="text-xs text-[#5e3825] font-kantumruy leading-relaxed pt-3 border-t border-[#edd3dd]/80 space-y-1">
+            <div>នៅ{WEDDING_DATA.lunarDate}</div>
+            <div className="font-bold text-[#43281c]">{WEDDING_DATA.solarDate}</div>
+            <div className="font-bold text-[#7f5539]">{WEDDING_DATA.time}</div>
+            <div className="text-[11px] text-[#6f4b36]">ទីតាំង៖ {WEDDING_DATA.location.address}</div>
+          </div>
+
+          <div className="scroll-hint text-[11px] text-[#7f5539] mt-3 pt-2 font-kantumruy flex items-center justify-center gap-1">
             <span>👇 ទម្លាក់ចុះក្រោមដើម្បីមើលលម្អិត 👇</span>
           </div>
         </header>
-
-        {/* Couple Names (ឈ្មោះកូនកំលោះ និងកូនក្រមុំ - Coffee Palette) */}
-        <section aria-label="ឈ្មោះកូនកំលោះ និងកូនក្រមុំ" className="couple-names my-4">
-          <div className="font-moul text-[#3d2314] text-xl sm:text-[23px] tracking-wide leading-snug">
-            {WEDDING_DATA.groom.fullName}
-          </div>
-          <div className="flex items-center justify-center gap-3 my-1.5">
-            <span className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#9c6644]" />
-            <span className="text-[#7f5539] text-lg font-serif-display italic font-bold">&</span>
-            <span className="h-[1px] w-12 bg-gradient-to-l from-transparent to-[#9c6644]" />
-          </div>
-          <div className="font-moul text-[#3d2314] text-xl sm:text-[23px] tracking-wide leading-snug">
-            {WEDDING_DATA.bride.fullName}
-          </div>
-        </section>
 
         {/* Couple Photo Container with interactive zoom / custom photo upload */}
         <PhotoCustomizer
@@ -192,6 +198,9 @@ export default function App() {
 
         {/* Wedding Photo Gallery (វិចិត្រសាលរូបថត - ដូចគំរូ 646.jpg) */}
         <WeddingPhotoGallery />
+
+        {/* Guestbook & Wishes Board (កន្លែងជូនពរ និង RSVP ដាក់មកវិញ) */}
+        <GuestbookWishes />
 
         {/* KHQR Wedding Gift - ABA Bank, ACLEDA Bank, Wing Bank, Any Bank in Cambodia */}
         <KhmerWeddingKHQR />

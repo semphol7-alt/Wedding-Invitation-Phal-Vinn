@@ -1,6 +1,8 @@
 {
-  "name": "Khmer Wedding Invitation - Sim Sophal & Mak Kagnadavinn",
+  "name": "Wedding Invitation -phal & vinn",
   "description": "ធៀបអាពាហ៍ពិពាហ៍ឌីជីថលបែបប្រពៃណីខ្មែរ - ស៊ឹម សុផល & ម៉ាក់ កញ្ញាដាវីន (ខេត្តតាកែវ)",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
