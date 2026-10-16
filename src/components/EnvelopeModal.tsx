@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Sparkles, Heart } from 'lucide-react';
+import { Mail, Sparkles, Heart, Zap, Layers } from 'lucide-react';
 import { WEDDING_DATA } from '../utils/khmerHelpers';
 import { AnimatedButterfly } from './AnimatedButterfly';
 import archBg from '../assets/images/soft_pink_orchid_arch_1792159771072.jpg';
@@ -16,17 +16,62 @@ export const EnvelopeModal: React.FC<EnvelopeModalProps> = ({
   isOpen,
 }) => {
   const [isOpening, setIsOpening] = useState(false);
+  const [burstSparkles, setBurstSparkles] = useState(false);
+  const [zoomMode, setZoomMode] = useState<'zoom-in' | 'zoom-out'>('zoom-in');
 
   if (isOpen) return null;
 
+  const playChime = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const notes = [523.25, 659.25, 783.99, 1046.5];
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.12);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime + idx * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.12 + 0.6);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + idx * 0.12);
+        osc.stop(ctx.currentTime + idx * 0.12 + 0.65);
+      });
+    } catch {
+      // Audio fallback
+    }
+  };
+
   const handleOpenEnvelope = () => {
+    if (isOpening) return;
     setIsOpening(true);
+    setBurstSparkles(true);
+
+    playChime();
 
     setTimeout(() => {
       onOpen();
       setIsOpening(false);
-    }, 850);
+      setBurstSparkles(false);
+    }, 1250);
   };
+
+  // Flying lotus petals for opening explosion
+  const petals = [
+    { tx: '-160px', ty: '-260px', rot: '180deg', delay: '0s', size: 'w-4 h-6' },
+    { tx: '180px', ty: '-280px', rot: '-160deg', delay: '0.04s', size: 'w-5 h-7' },
+    { tx: '-220px', ty: '-110px', rot: '220deg', delay: '0.08s', size: 'w-4 h-5' },
+    { tx: '240px', ty: '-120px', rot: '-200deg', delay: '0.06s', size: 'w-5 h-6' },
+    { tx: '-130px', ty: '140px', rot: '140deg', delay: '0.12s', size: 'w-4 h-5' },
+    { tx: '160px', ty: '160px', rot: '-130deg', delay: '0.1s', size: 'w-5 h-6' },
+    { tx: '-50px', ty: '-320px', rot: '90deg', delay: '0.02s', size: 'w-6 h-8' },
+    { tx: '60px', ty: '-340px', rot: '-90deg', delay: '0.03s', size: 'w-5 h-7' },
+    { tx: '-260px', ty: '10px', rot: '240deg', delay: '0.09s', size: 'w-4 h-6' },
+    { tx: '270px', ty: '20px', rot: '-210deg', delay: '0.07s', size: 'w-5 h-7' },
+    { tx: '0px', ty: '-360px', rot: '0deg', delay: '0.01s', size: 'w-6 h-9' },
+  ];
 
   return (
     <div
@@ -37,13 +82,23 @@ export const EnvelopeModal: React.FC<EnvelopeModalProps> = ({
     >
       {/* Background Floral Arch Image with Soft Scrim (ផ្កាឈូកស្រាល / ផ្កាឈូកទន់) */}
       <div
-        className="absolute inset-0 bg-cover bg-center pointer-events-none opacity-45 mix-blend-multiply"
+        className={`absolute inset-0 bg-cover bg-center pointer-events-none transition-all duration-1000 ${
+          isOpening
+            ? zoomMode === 'zoom-in'
+              ? 'scale-125 opacity-75 blur-xs'
+              : 'scale-90 opacity-40 blur-xs'
+            : 'scale-100 opacity-45 mix-blend-multiply'
+        }`}
         style={{ backgroundImage: `url(${archBg})` }}
       />
 
       {/* Soft Lotus Pink Ambient Radial Glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[550px] h-[550px] rounded-full bg-rose-200/40 blur-3xl animate-pulse" />
+        <div
+          className={`absolute top-10 left-1/2 -translate-x-1/2 w-[550px] h-[550px] rounded-full bg-rose-200/40 blur-3xl transition-all duration-700 ${
+            isOpening ? 'scale-150 bg-rose-300/60' : 'animate-pulse'
+          }`}
+        />
         <div className="absolute bottom-5 right-10 w-80 h-80 rounded-full bg-amber-100/60 blur-2xl" />
         <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-pink-300/30 blur-2xl" />
 
@@ -54,25 +109,53 @@ export const EnvelopeModal: React.FC<EnvelopeModalProps> = ({
         <div className="absolute top-1/6 right-1/3 w-3 h-3 rounded-full bg-amber-300 shadow-[0_0_14px_#ffe082] animate-sparkle [animation-delay:1.9s]" />
       </div>
 
-      {/* Main Container */}
+      {/* Bursting Lotus Petals & Gold Aura on Open Click */}
+      {burstSparkles && (
+        <div className="absolute inset-0 pointer-events-none z-40 flex items-center justify-center">
+          {petals.map((p, i) => (
+            <div
+              key={i}
+              className={`absolute rounded-full bg-gradient-to-br from-rose-200 via-pink-300 to-rose-400 shadow-lg animate-petal ${p.size}`}
+              style={
+                {
+                  '--tx': p.tx,
+                  '--ty': p.ty,
+                  '--rot': p.rot,
+                  animationDelay: p.delay,
+                } as React.CSSProperties
+              }
+            />
+          ))}
+          {/* Central Golden Aura Flash */}
+          <div className="w-[500px] h-[500px] rounded-full bg-gradient-to-r from-amber-300/70 via-rose-300/70 to-amber-200/70 blur-3xl animate-ping" />
+        </div>
+      )}
+
+      {/* Main Envelope Card with 3D Perspective & Zoom In / Zoom Out */}
       <div
-        className={`relative w-full max-w-[420px] transition-all duration-700 transform ${
+        className={`relative w-full max-w-[420px] transition-all duration-700 [perspective:1200px] ${
           isOpening
-            ? 'scale-110 opacity-0 -translate-y-12'
+            ? zoomMode === 'zoom-in'
+              ? 'animate-envelope-zoom-in pointer-events-none'
+              : 'animate-envelope-zoom-out pointer-events-none'
             : 'scale-100 opacity-100 translate-y-0'
         }`}
       >
-        {/* Animated Flying Turquoise Butterflies (Fluttering Upwards from Envelope like 647.jpg) */}
-        <div className="absolute inset-0 pointer-events-none z-30">
+        {/* Animated Flying Turquoise Butterflies (Fluttering Upwards like 647.jpg) */}
+        <div
+          className={`absolute inset-0 pointer-events-none z-30 transition-transform duration-700 ${
+            isOpening ? 'scale-140 -translate-y-24 opacity-80' : ''
+          }`}
+        >
           {/* Top Floating Swarm of Butterflies */}
           <div className="absolute -top-16 left-1/2 -translate-x-1/2">
-            <AnimatedButterfly size={32} flyAnimation="animate-butterfly-2" />
+            <AnimatedButterfly size={34} flyAnimation="animate-butterfly-2" />
           </div>
-          <div className="absolute -top-24 left-1/3">
-            <AnimatedButterfly size={26} flyAnimation="animate-butterfly-1" />
+          <div className="absolute -top-24 left-1/4">
+            <AnimatedButterfly size={28} flyAnimation="animate-butterfly-1" />
           </div>
           <div className="absolute -top-10 right-10">
-            <AnimatedButterfly size={34} flyAnimation="animate-butterfly-3" />
+            <AnimatedButterfly size={36} flyAnimation="animate-butterfly-3" />
           </div>
           <div className="absolute top-4 -right-4">
             <AnimatedButterfly size={42} flyAnimation="animate-butterfly-1" />
@@ -90,13 +173,39 @@ export const EnvelopeModal: React.FC<EnvelopeModalProps> = ({
 
         {/* 3D Envelope Wrapper in Soft Lotus Pink / Blush Tone */}
         <div className="relative pt-6 pb-2">
-          {/* Opened Envelope Back Flap */}
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[92%] h-36 bg-[#f7e4eb] rounded-t-[40px] border border-[#ecd2dc] shadow-sm transform -rotate-1 pointer-events-none">
-            <div className="w-full h-full bg-gradient-to-b from-[#faedf2] to-[#ebd2dd] rounded-t-[40px] opacity-90" />
+          
+          {/* 3D Envelope Top Triangular Flap */}
+          <div
+            className={`absolute top-0 left-1/2 -translate-x-1/2 w-[92%] h-24 bg-gradient-to-b from-[#f8e4eb] to-[#eed0db] border-t-2 border-x-2 border-[#edd2dd] rounded-t-[32px] shadow-sm pointer-events-none z-25 origin-top transition-all duration-700 ${
+              isOpening ? 'animate-flap-open' : ''
+            }`}
+          >
+            {/* Flap gold foil tip */}
+            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-[#b38728]/40 rounded-full" />
           </div>
 
+          {/* Letter Sliding Out from Envelope on Opening */}
+          {isOpening && (
+            <div className="absolute top-8 left-1/2 -translate-x-1/2 w-[85%] bg-gradient-to-b from-[#fffcf8] via-[#fff8f2] to-[#fbf0ea] border-2 border-[#b38728] rounded-2xl p-4 shadow-2xl z-20 animate-letter-slide text-center font-kantumruy">
+              <span className="text-[10px] text-[#b38728] uppercase tracking-widest font-bold">
+                ❖ WEDDING INVITATION ❖
+              </span>
+              <div className="font-moul text-sm text-[#43281c] mt-1">
+                {WEDDING_DATA.groom.fullName} & {WEDDING_DATA.bride.fullName}
+              </div>
+              <div className="text-[10px] text-[#7f5539] mt-0.5">
+                {WEDDING_DATA.solarDate}
+              </div>
+            </div>
+          )}
+
           {/* Envelope Body Card (Front in Coffee Tone: ខាងមុខដាក់ កាហ្វេ) */}
-          <div className="relative bg-[#ffffff] rounded-3xl shadow-[0_25px_60px_rgba(110,65,75,0.22)] border-2 border-[#edd3dd] overflow-hidden p-6 sm:p-8 text-center backdrop-blur-xs">
+          <div
+            onClick={handleOpenEnvelope}
+            className={`relative bg-[#ffffff] rounded-3xl shadow-[0_25px_60px_rgba(110,65,75,0.22)] border-2 border-[#edd3dd] overflow-hidden p-6 sm:p-8 text-center backdrop-blur-xs transition-all duration-500 cursor-pointer group hover:border-[#dfbac8] hover:shadow-[0_30px_70px_rgba(110,65,75,0.3)] ${
+              isOpening ? 'shadow-[0_40px_90px_rgba(110,65,75,0.45)]' : ''
+            }`}
+          >
             {/* Top Ornamental Ribbon with Coffee Accents */}
             <div className="flex items-center justify-center gap-2 mb-3">
               <span className="h-[1.5px] w-10 bg-gradient-to-r from-transparent to-[#9c6644]" />
@@ -122,8 +231,12 @@ export const EnvelopeModal: React.FC<EnvelopeModalProps> = ({
             )}
 
             {/* Couple Calligraphic Monogram Emblem (in Coffee Tone #43281c & Champagne Gold) */}
-            <div className="my-4 py-3 px-2 rounded-2xl bg-gradient-to-b from-[#fdf7f9] to-[#faebf0] border border-[#ebd0dc]/80 relative overflow-hidden group">
-              {/* Subtle inner gold shine */}
+            <div
+              className={`my-4 py-3.5 px-2 rounded-2xl bg-gradient-to-b from-[#fdf7f9] to-[#faebf0] border border-[#ebd0dc]/80 relative overflow-hidden group-hover:border-[#b38728]/40 transition-all duration-500 ${
+                isOpening ? 'scale-105 border-amber-300' : ''
+              }`}
+            >
+              {/* Inner ambient shine */}
               <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-amber-200/25 blur-xl pointer-events-none" />
 
               <span className="text-[10.5px] text-[#9c6644] font-kantumruy block mb-1">
@@ -162,15 +275,21 @@ export const EnvelopeModal: React.FC<EnvelopeModalProps> = ({
               <span className="text-[11px] text-[#9c6644]">{WEDDING_DATA.location.province}</span>
             </div>
 
-            {/* Open Envelope Button with Soft Lotus Wax Stamp Effect */}
+            {/* Interactive Open Envelope Button with Zoom In / Zoom Out */}
             <div className="flex flex-col items-center">
               <button
-                onClick={handleOpenEnvelope}
-                className="group relative flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-[#43281c] via-[#5e3a24] to-[#43281c] text-[#fff8f5] font-medium font-kantumruy text-sm shadow-[0_10px_25px_rgba(67,40,28,0.35)] hover:shadow-[0_15px_30px_rgba(67,40,28,0.45)] hover:scale-105 active:scale-95 transition-all duration-300 border border-[#b38728]/50 cursor-pointer"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleOpenEnvelope();
+                }}
+                className={`group/btn relative flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-[#43281c] via-[#5e3a24] to-[#43281c] text-[#fff8f5] font-medium font-kantumruy text-sm shadow-[0_10px_25px_rgba(67,40,28,0.35)] hover:shadow-[0_15px_30px_rgba(67,40,28,0.45)] hover:scale-105 active:scale-95 transition-all duration-300 border border-[#b38728]/50 cursor-pointer ${
+                  isOpening ? 'animate-wax-burst' : ''
+                }`}
               >
-                {/* Wax Stamp Lotus Icon */}
+                {/* Wax Stamp Sparkle Icon */}
                 <div className="w-5 h-5 rounded-full bg-[#f3d3de] text-[#7f394f] flex items-center justify-center text-xs shadow-inner">
-                  <Sparkles className="w-3 h-3 text-[#43281c] group-hover:rotate-12 transition-transform" />
+                  <Sparkles className="w-3 h-3 text-[#43281c] group-hover/btn:rotate-12 transition-transform" />
                 </div>
                 <span className="font-bold tracking-wide text-amber-100">
                   បើកសំបុត្រអាពាហ៍ពិពាហ៍
@@ -181,6 +300,38 @@ export const EnvelopeModal: React.FC<EnvelopeModalProps> = ({
               <p className="text-[11px] text-[#8c6551] mt-3 font-kantumruy flex items-center gap-1">
                 <span>✨ ចុចបើកដើម្បីអានធៀបការ និងស្តាប់បទចម្រៀង</span>
               </p>
+
+              {/* Effect Zoom Mode Selector (Zoom In or Zoom Out) */}
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="mt-3 inline-flex items-center gap-1.5 p-1 rounded-full bg-[#fcedf2] border border-[#edd3dd] text-[10px] font-kantumruy text-[#7f5539]"
+              >
+                <span className="px-2 font-bold text-[#43281c] flex items-center gap-0.5">
+                  <Zap className="w-2.5 h-2.5 text-amber-600" /> ចលនា៖
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setZoomMode('zoom-in')}
+                  className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
+                    zoomMode === 'zoom-in'
+                      ? 'bg-[#43281c] text-amber-100 font-bold shadow-xs'
+                      : 'hover:bg-white text-[#7f5539]'
+                  }`}
+                >
+                  Zoom In (ពង្រីកចូល)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setZoomMode('zoom-out')}
+                  className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
+                    zoomMode === 'zoom-out'
+                      ? 'bg-[#43281c] text-amber-100 font-bold shadow-xs'
+                      : 'hover:bg-white text-[#7f5539]'
+                  }`}
+                >
+                  Zoom Out (ពង្រីកចេញ)
+                </button>
+              </div>
             </div>
 
             {/* Bottom Auspicious Blessing in Warm Coffee/Mocha */}

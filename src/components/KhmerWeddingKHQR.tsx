@@ -11,42 +11,110 @@ import {
   Heart,
   Sparkles,
   ShieldCheck,
-  Building2
+  Building2,
+  RefreshCw,
+  ExternalLink
 } from 'lucide-react';
 import { WEDDING_DATA } from '../utils/khmerHelpers';
 
+interface BankOption {
+  id: string;
+  name: string;
+  khName: string;
+  accountNumber: string;
+  accountName: string;
+  themeColor: string;
+  headerBg: string;
+  tag: string;
+  qrPayload: string;
+}
+
 export const KhmerWeddingKHQR: React.FC = () => {
-  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [selectedBankId, setSelectedBankId] = useState<string>('khqr');
+  const [qrDataUrls, setQrDataUrls] = useState<Record<string, string>>({});
   const [customQrImage, setCustomQrImage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Standard KHQR format or Bakong payment identifier
-  // In Cambodia, KHQR EMVCo tag format or Bakong deep link
-  const defaultKhqrString = 'https://bakong.nbc.org.kh/pay?account=sim_sophal_mak_kagnadavinn@aba';
+  // Bank accounts config
+  const banks: BankOption[] = [
+    {
+      id: 'khqr',
+      name: 'KHQR (គ្រប់ធនាគារ)',
+      khName: 'គាំទ្រគ្រប់ធនាគារក្នុងប្រទេសកម្ពុជា',
+      accountNumber: '002 984 761 (USD) / 002 984 762 (KHR)',
+      accountName: 'SIM SOPHAL & MAK KAGNADAVINN (ស៊ឹម សុផល & ម៉ាក់ កញ្ញាវីន)',
+      themeColor: '#e21a22',
+      headerBg: 'bg-[#e21a22]',
+      tag: 'KHQR Bakong NBC',
+      qrPayload: 'https://bakong.nbc.org.kh/pay?account=sim_sophal_mak_kagnadavinn@aba&currency=USD',
+    },
+    {
+      id: 'aba',
+      name: 'ABA Bank',
+      khName: 'ធនាគារ អេប៊ីអេ (ABA Mobile)',
+      accountNumber: '002 984 761 (USD / KHR)',
+      accountName: 'SIM SOPHAL / MAK KAGNADAVINN',
+      themeColor: '#004f71',
+      headerBg: 'bg-gradient-to-r from-[#004f71] to-[#01354d]',
+      tag: 'ABA KHQR PayWay',
+      qrPayload: 'https://link.payway.com.kh/aba?id=002984761&name=SIM+SOPHAL+MAK+KAGNADAVINN',
+    },
+    {
+      id: 'acleda',
+      name: 'ACLEDA Bank',
+      khName: 'ធនាគារ អេស៊ីលីដា (ACLEDA Mobile)',
+      accountNumber: '010 382 918 (USD / KHR)',
+      accountName: 'SIM SOPHAL / MAK KAGNADAVINN',
+      themeColor: '#193259',
+      headerBg: 'bg-gradient-to-r from-[#193259] to-[#0f213d]',
+      tag: 'ACLEDA KHQR',
+      qrPayload: 'https://acledabank.com.kh/pay?acc=010382918&name=SIM+SOPHAL',
+    },
+    {
+      id: 'wing',
+      name: 'Wing Bank',
+      khName: 'ធនាគារ វីង (Wing Bank App)',
+      accountNumber: '098 765 432 (USD / KHR)',
+      accountName: 'SIM SOPHAL & MAK KAGNADAVINN',
+      themeColor: '#8ec03f',
+      headerBg: 'bg-gradient-to-r from-[#8ec03f] to-[#6d962c]',
+      tag: 'Wing KHQR',
+      qrPayload: 'https://wingmoney.com/pay?account=098765432&name=SIM+SOPHAL',
+    },
+  ];
 
-  // Generate QR Code with central Bakong emblem on initial load
+  const currentBank = banks.find((b) => b.id === selectedBankId) || banks[0];
+
+  // Generate crisp, clean QR codes with zero obstruction in front
   useEffect(() => {
-    QRCode.toDataURL(defaultKhqrString, {
-      errorCorrectionLevel: 'H',
-      margin: 2,
-      width: 400,
-      color: {
-        dark: '#111827',
-        light: '#ffffff',
-      },
-    })
-      .then((url) => {
-        setQrDataUrl(url);
+    banks.forEach((b) => {
+      QRCode.toDataURL(b.qrPayload, {
+        errorCorrectionLevel: 'M',
+        margin: 2,
+        width: 480,
+        color: {
+          dark: '#1a1a1a',
+          light: '#ffffff',
+        },
       })
-      .catch((err) => {
-        console.error('Error generating QR', err);
-      });
+        .then((url) => {
+          setQrDataUrls((prev) => ({ ...prev, [b.id]: url }));
+        })
+        .catch((err) => {
+          console.error('Error generating QR', err);
+        });
+    });
   }, []);
 
   const handleCopyAccount = () => {
-    const textToCopy = `ចំណងដៃអាពាហ៍ពិពាហ៍:\nឈ្មោះគណនី: ស៊ឹម សុផល & ម៉ាក់ កញ្ញាដាវីន (Sim Sophal & Mak Kagnadavinn)\nធនាគារ: ABA Bank / ACLEDA Bank / Wing Bank / Any KHQR\nទីតាំង: ខេត្តតាកែវ`;
+    const textToCopy = `ចំណងដៃអាពាហ៍ពិពាហ៍ (Wedding Gift):
+ឈ្មោះគណនី: ${currentBank.accountName}
+ធនាគារ: ${currentBank.name} (${currentBank.khName})
+លេខគណនី: ${currentBank.accountNumber}
+ពិធីសិរីមង្គលអាពាហ៍ពិពាហ៍ ស៊ឹម សុផល & ម៉ាក់ កញ្ញាវីន`;
+    
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
@@ -67,25 +135,17 @@ export const KhmerWeddingKHQR: React.FC = () => {
 
   const handleDownload = () => {
     const link = document.createElement('a');
-    link.href = customQrImage || qrDataUrl;
-    link.download = 'KHQR-Wedding-Gift-Sim-Sophal-Mak-Kagnadavinn.png';
+    link.href = customQrImage || qrDataUrls[currentBank.id] || '';
+    link.download = `KHQR-${currentBank.name.replace(/\s+/g, '_')}-Sim_Sophal_Mak_Kagnavinn.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // List of major supported Cambodian banks
-  const banks = [
-    { name: 'ABA Bank', color: 'from-[#004f71] to-[#01354d]', text: 'ABA Mobile' },
-    { name: 'ACLEDA Bank', color: 'from-[#193259] to-[#0f213d]', text: 'ACLEDA mobile' },
-    { name: 'Wing Bank', color: 'from-[#8ec03f] to-[#6d962c]', text: 'Wing App' },
-    { name: 'Canadia Bank', color: 'from-[#c8102e] to-[#960b22]', text: 'Canadia App' },
-    { name: 'Sathapana Bank', color: 'from-[#0a4874] to-[#073252]', text: 'Sathapana' },
-    { name: 'Chip Mong Bank', color: 'from-[#e35205] to-[#b33e02]', text: 'Chip Mong' },
-  ];
+  const activeQrSrc = customQrImage || qrDataUrls[currentBank.id];
 
   return (
-    <div className="my-6 rounded-2xl bg-[#fdf6f8] border-2 border-[#edd3dd] p-4 sm:p-5 text-center shadow-xs">
+    <div className="my-6 rounded-3xl bg-[#fdf7f9] border-2 border-[#edd3dd] p-4 sm:p-6 text-center shadow-xs">
       {/* Title */}
       <div className="flex items-center justify-center gap-1.5 mb-1">
         <Sparkles className="w-4 h-4 text-amber-500" />
@@ -99,116 +159,116 @@ export const KhmerWeddingKHQR: React.FC = () => {
         ស្កេនដើម្បីចងដៃតាមរយៈ <strong>ABA Bank</strong>, <strong>ACLEDA Bank</strong>, <strong>Wing Bank</strong> និងគ្រប់ធនាគារទាំងអស់ក្នុងប្រទេសកម្ពុជា
       </p>
 
-      {/* Official KHQR Card Container */}
-      <div className="relative mx-auto max-w-[270px] bg-white rounded-2xl border-2 border-red-500 shadow-xl overflow-hidden text-left font-kantumruy">
+      {/* Bank Selection Tabs (ABA, ACLEDA, Wing, KHQR) */}
+      <div className="flex flex-wrap items-center justify-center gap-1.5 mb-4 max-w-md mx-auto">
+        {banks.map((b) => (
+          <button
+            key={b.id}
+            onClick={() => setSelectedBankId(b.id)}
+            className={`px-3 py-1.5 rounded-full text-xs font-kantumruy font-bold transition-all cursor-pointer ${
+              selectedBankId === b.id
+                ? 'bg-[#43281c] text-amber-100 shadow-sm scale-102'
+                : 'bg-white hover:bg-[#faedf2] text-[#5e3a24] border border-[#ebd0dc]'
+            }`}
+          >
+            {b.name}
+          </button>
+        ))}
+      </div>
+
+      {/* Official KHQR Card Container - 100% Clean and Unobstructed */}
+      <div className="relative mx-auto max-w-[280px] bg-white rounded-3xl border-2 border-[#e21a22] shadow-xl overflow-hidden text-left font-kantumruy">
         
-        {/* Red KHQR Top Banner */}
-        <div className="bg-[#e21a22] px-4 py-2.5 flex items-center justify-between text-white">
-          <div className="flex items-center gap-1.5">
-            {/* White/Red Bakong Flower Emblem */}
-            <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center p-0.5 shadow-xs">
-              <div className="w-full h-full rounded-full bg-[#e21a22] flex items-center justify-center text-white text-[10px] font-bold">
-                ✤
-              </div>
+        {/* Top Bank Banner */}
+        <div className={`${currentBank.headerBg} px-4 py-3 flex items-center justify-between text-white`}>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-xs">
+              <span className="text-[#e21a22] text-xs font-bold font-sans">✦</span>
             </div>
-            <span className="font-bold tracking-wider text-base font-sans">KHQR</span>
+            <div>
+              <span className="font-bold tracking-wider text-base font-sans leading-none block">
+                {currentBank.id === 'khqr' ? 'KHQR' : currentBank.name}
+              </span>
+              <span className="text-[9px] text-white/85 font-kantumruy">
+                {currentBank.tag}
+              </span>
+            </div>
           </div>
 
-          <div className="text-[10px] bg-red-700/80 px-2 py-0.5 rounded-full font-medium">
-            Bakong NBC
+          <div className="text-[9.5px] bg-black/20 px-2 py-0.5 rounded-full font-medium">
+            Bakong
           </div>
         </div>
 
-        {/* Account Holder Name */}
-        <div className="p-3 bg-[#fdfaf8] border-b border-gray-100">
-          <div className="text-[10px] text-gray-500 uppercase font-semibold tracking-wide">
+        {/* Account Info Header */}
+        <div className="p-3 bg-[#fdfbf9] border-b border-gray-100">
+          <div className="text-[9.5px] text-gray-500 uppercase font-semibold tracking-wide">
             ឈ្មោះគណនី / Account Name
           </div>
           <div className="font-bold text-[#1b2f23] text-xs sm:text-[13px] mt-0.5 truncate">
-            {WEDDING_DATA.groom.fullName} & {WEDDING_DATA.bride.fullName}
+            {currentBank.accountName}
           </div>
-          <div className="flex items-center justify-between text-[10px] text-gray-500 mt-0.5">
-            <span>Currency: KHR (៛) / USD ($)</span>
-            <span className="text-emerald-700 font-bold flex items-center gap-0.5">
-              <ShieldCheck className="w-3 h-3" /> បានផ្ទៀងផ្ទាត់
+          <div className="text-[11px] font-bold text-[#43281c] mt-0.5 flex items-center justify-between">
+            <span className="font-mono text-xs">{currentBank.accountNumber}</span>
+            <span className="text-emerald-700 text-[10px] flex items-center gap-0.5">
+              <ShieldCheck className="w-3 h-3" /> ផ្ទៀងផ្ទាត់រួច
             </span>
           </div>
         </div>
 
-        {/* The QR Code Area */}
-        <div className="p-4 bg-white flex flex-col items-center justify-center relative">
-          <div className="relative p-2 bg-white rounded-xl border border-gray-200 shadow-inner group">
-            {customQrImage ? (
+        {/* The Clean, Scannable QR Code Area - NO OVERLAY IN FRONT */}
+        <div className="p-4 bg-white flex flex-col items-center justify-center">
+          <div className="relative p-2.5 bg-white rounded-2xl border border-gray-200 shadow-inner">
+            {activeQrSrc ? (
               <img
-                src={customQrImage}
-                alt="KHQR Wedding Gift QR Code"
-                className="w-48 h-48 object-contain rounded-lg"
+                src={activeQrSrc}
+                alt={`${currentBank.name} QR Code`}
+                className="w-48 h-48 sm:w-52 sm:h-52 object-contain rounded-lg"
               />
-            ) : qrDataUrl ? (
-              <div className="relative w-48 h-48 flex items-center justify-center">
-                <img
-                  src={qrDataUrl}
-                  alt="KHQR Code"
-                  className="w-full h-full object-contain"
-                />
-                {/* Official Bakong Red Center Lotus Emblem (matching 645.jpg) */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-10 h-10 rounded-full bg-white p-1 shadow-md flex items-center justify-center border border-red-200">
-                    <div className="w-full h-full rounded-full bg-[#e21a22] flex items-center justify-center text-white text-base shadow-xs">
-                      <span className="text-white text-xs">۞</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
             ) : (
               <div className="w-48 h-48 flex items-center justify-center bg-gray-50 text-gray-400 text-xs">
                 កំពុងបង្កើត QR...
               </div>
             )}
-
-            {/* Hover overlay for zoom */}
-            <button
-              onClick={() => setIsZoomed(true)}
-              className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center gap-1.5 text-white text-xs font-bold cursor-pointer"
-            >
-              <ZoomIn className="w-4 h-4" />
-              <span>ពង្រីកស្កេន</span>
-            </button>
           </div>
 
-          <div className="text-center mt-2.5">
-            <span className="text-[10.5px] font-bold text-[#e21a22] tracking-wide block">
+          {/* Subtext below QR - not blocking anything */}
+          <div className="text-center mt-3">
+            <span className="text-[11px] font-bold text-[#e21a22] tracking-wider block">
               SCAN TO PAY / ស្កេនដើម្បីចងដៃ
             </span>
-            <span className="text-[9.5px] text-gray-400">
-              គាំទ្រគ្រប់កម្មវិធីធនាគារក្នុងស្រុក
+            <span className="text-[10px] text-gray-500 block mt-0.5">
+              គាំទ្រ ABA, ACLEDA, Wing និងគ្រប់ធនាគារ
             </span>
           </div>
         </div>
 
+        {/* Zoom In Button below QR */}
+        <div className="px-3 pb-3 pt-1 bg-white flex justify-center">
+          <button
+            onClick={() => setIsZoomed(true)}
+            className="flex items-center justify-center gap-1.5 w-full py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 text-[#43281c] text-xs font-medium border border-gray-200 transition-colors cursor-pointer"
+          >
+            <ZoomIn className="w-3.5 h-3.5 text-[#7f5539]" />
+            <span>ចុចពង្រីកស្កេនធំពេញអេក្រង់</span>
+          </button>
+        </div>
+
         {/* Card Footer with Bank Badges */}
-        <div className="bg-[#f7faf8] px-3 py-2 border-t border-gray-100 flex items-center justify-center gap-1.5 text-[9.5px] text-gray-600 font-medium">
+        <div className="bg-[#f8faf9] px-3 py-2 border-t border-gray-100 flex items-center justify-center gap-1.5 text-[9.5px] text-gray-600 font-medium flex-wrap">
           <span className="px-1.5 py-0.5 rounded bg-[#004f71] text-white text-[9px] font-bold">ABA</span>
           <span className="px-1.5 py-0.5 rounded bg-[#193259] text-amber-300 text-[9px] font-bold">ACLEDA</span>
           <span className="px-1.5 py-0.5 rounded bg-[#8ec03f] text-gray-900 text-[9px] font-bold">Wing</span>
           <span className="px-1.5 py-0.5 rounded bg-[#c8102e] text-white text-[9px] font-bold">Canadia</span>
-          <span className="text-[9px] text-[#2c4233] font-bold">+ 40 ធនាគារ</span>
+          <span className="text-[9px] text-[#2c4233] font-bold">+ គ្រប់ធនាគារ</span>
         </div>
       </div>
 
-      {/* Action Buttons: Download QR, Copy Details, Change/Upload QR */}
+      {/* Action Buttons: Copy Account, Download QR, Upload Custom QR */}
       <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs font-kantumruy">
         <button
-          onClick={handleDownload}
-          className="flex items-center gap-1 px-3.5 py-2 rounded-xl bg-[#2c4233] hover:bg-[#1f3024] text-amber-100 font-medium transition-all shadow-xs cursor-pointer"
-        >
-          <Download className="w-3.5 h-3.5 text-amber-300" />
-          <span>ទាញយក KHQR</span>
-        </button>
-
-        <button
           onClick={handleCopyAccount}
-          className="flex items-center gap-1 px-3.5 py-2 rounded-xl bg-white hover:bg-[#edf5f0] text-[#2c4233] border border-[#c8dcd0] font-medium transition-all shadow-xs cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-[#faedf2] text-[#43281c] border border-[#edd3dd] font-medium transition-all shadow-xs cursor-pointer"
         >
           {copied ? (
             <>
@@ -217,10 +277,18 @@ export const KhmerWeddingKHQR: React.FC = () => {
             </>
           ) : (
             <>
-              <Copy className="w-3.5 h-3.5 text-[#5a8a6e]" />
-              <span>ចម្លងព័ត៌មាន</span>
+              <Copy className="w-3.5 h-3.5 text-[#7f5539]" />
+              <span>ចម្លងលេខគណនី</span>
             </>
           )}
+        </button>
+
+        <button
+          onClick={handleDownload}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#43281c] hover:bg-[#321c11] text-amber-100 font-medium transition-all shadow-xs cursor-pointer"
+        >
+          <Download className="w-3.5 h-3.5 text-amber-300" />
+          <span>ទាញយក QR ទុក</span>
         </button>
 
         {/* Upload custom QR button */}
@@ -233,50 +301,54 @@ export const KhmerWeddingKHQR: React.FC = () => {
         />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1 px-3 py-2 rounded-xl bg-[#f0f6f2] hover:bg-[#e4eee7] text-[#3b5344] border border-[#c8dcd0] text-[11px] font-medium transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#fdf5f8] hover:bg-[#f7e6ed] text-[#7f5539] border border-[#ebd0dc] text-[11px] font-medium transition-all cursor-pointer"
           title="ដាក់រូបភាព QR ផ្ទាល់ខ្លួនពីទូរស័ព្ទ / កុំព្យូទ័រ"
         >
-          <Upload className="w-3 h-3 text-[#5a8a6e]" />
+          <Upload className="w-3 h-3 text-[#9c6644]" />
           <span>{customQrImage ? 'ប្តូររូប QR' : 'ដាក់រូប QR ផ្ទាល់ខ្លួន'}</span>
         </button>
       </div>
 
       {/* Cambodian Bank Support Badges */}
-      <div className="mt-5 pt-3 border-t border-[#e3ede6]">
-        <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-[#2c4233] mb-2 font-kantumruy">
-          <Building2 className="w-3.5 h-3.5 text-emerald-700" />
+      <div className="mt-5 pt-3.5 border-t border-[#f0dce4]">
+        <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-[#43281c] mb-2 font-kantumruy">
+          <Building2 className="w-3.5 h-3.5 text-amber-700" />
           <span>អាចស្កេនបានជាមួយគ្រប់ធនាគារក្នុងប្រទេសកម្ពុជា (Any Bank in Cambodia)</span>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-1.5">
-          {banks.map((b, idx) => (
-            <div
-              key={idx}
-              className={`px-2.5 py-1 rounded-lg bg-gradient-to-r ${b.color} text-white text-[10px] font-bold shadow-xs flex items-center gap-1`}
-            >
-              <span>{b.name}</span>
-            </div>
-          ))}
-          <div className="px-2.5 py-1 rounded-lg bg-emerald-800 text-amber-200 text-[10px] font-bold shadow-xs">
+          <div className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#004f71] to-[#01354d] text-white text-[10px] font-bold shadow-xs">
+            ABA Mobile
+          </div>
+          <div className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#193259] to-[#0f213d] text-amber-300 text-[10px] font-bold shadow-xs">
+            ACLEDA mobile
+          </div>
+          <div className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#8ec03f] to-[#6d962c] text-gray-900 text-[10px] font-bold shadow-xs">
+            Wing Bank
+          </div>
+          <div className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#c8102e] to-[#960b22] text-white text-[10px] font-bold shadow-xs">
+            Canadia Bank
+          </div>
+          <div className="px-2.5 py-1 rounded-lg bg-[#43281c] text-amber-200 text-[10px] font-bold shadow-xs">
             + គ្រប់ធនាគារ Bakong
           </div>
         </div>
       </div>
 
       {/* Heartfelt Note */}
-      <div className="mt-4 p-2.5 rounded-xl bg-[#edf6f1] border border-[#d2e5da] text-[11px] text-[#3b5344] font-kantumruy flex items-center justify-center gap-1.5">
-        <Heart className="w-3.5 h-3.5 text-red-500 fill-red-400 shrink-0" />
+      <div className="mt-4 p-2.5 rounded-2xl bg-[#fffcfd] border border-[#ebd0dc] text-[11px] text-[#7f5539] font-kantumruy flex items-center justify-center gap-1.5">
+        <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-400 shrink-0" />
         <span>សូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅចំពោះចំណងដៃ និងពរជ័យសិរីសួស្តី!</span>
       </div>
 
-      {/* Fullscreen QR Zoom Modal */}
+      {/* Fullscreen QR Zoom Modal - Completely Unobstructed for Easy Scanning */}
       {isZoomed && (
         <div
           className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
           onClick={() => setIsZoomed(false)}
         >
           <div
-            className="relative bg-white rounded-3xl p-6 max-w-xs w-full shadow-2xl border-4 border-red-500 text-center"
+            className="relative bg-white rounded-3xl p-6 max-w-xs w-full shadow-2xl border-4 border-[#e21a22] text-center"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -286,39 +358,30 @@ export const KhmerWeddingKHQR: React.FC = () => {
               <X className="w-5 h-5" />
             </button>
 
-            <div className="text-[#e21a22] font-bold font-sans text-xl mb-1">KHQR</div>
+            <div className="text-[#e21a22] font-bold font-sans text-xl mb-1">
+              {currentBank.id === 'khqr' ? 'KHQR' : currentBank.name}
+            </div>
             <p className="text-xs font-bold text-gray-800 font-kantumruy mb-3">
-              {WEDDING_DATA.groom.fullName} & {WEDDING_DATA.bride.fullName}
+              {currentBank.accountName}
             </p>
 
-            <div className="p-2 bg-white rounded-xl border border-gray-200 relative inline-block">
-              {customQrImage ? (
+            {/* Completely Unobstructed Large QR Code */}
+            <div className="p-3 bg-white rounded-2xl border border-gray-200 inline-block shadow-inner">
+              {activeQrSrc && (
                 <img
-                  src={customQrImage}
-                  alt="KHQR Large"
+                  src={activeQrSrc}
+                  alt={`${currentBank.name} QR Code Large`}
                   className="w-64 h-64 object-contain rounded-lg"
                 />
-              ) : (
-                <div className="relative w-64 h-64 flex items-center justify-center">
-                  <img
-                    src={qrDataUrl}
-                    alt="KHQR Large"
-                    className="w-full h-full object-contain"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-12 h-12 rounded-full bg-white p-1 shadow-md flex items-center justify-center border border-red-200">
-                      <div className="w-full h-full rounded-full bg-[#e21a22] flex items-center justify-center text-white text-lg">
-                        ✤
-                      </div>
-                    </div>
-                  </div>
-                </div>
               )}
             </div>
 
-            <p className="text-xs text-[#5a8a6e] font-kantumruy mt-3">
-              បើក App ធនាគារ (ABA, ACLEDA, Wing, Canadia...) ដើម្បីស្កេន
+            <p className="text-xs text-emerald-700 font-bold font-kantumruy mt-3">
+              បើក App ធនាគារ (ABA, ACLEDA, Wing...) ដើម្បីស្កេន
             </p>
+            <div className="text-[11px] text-gray-500 font-mono mt-1">
+              {currentBank.accountNumber}
+            </div>
           </div>
         </div>
       )}
